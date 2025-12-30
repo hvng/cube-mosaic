@@ -5,7 +5,6 @@ const ctx = canvas.getContext("2d");
 const gridWidthInput = document.getElementById("gridWidth");
 const cubeSizeInput = document.getElementById("cubeSize");
 const generateBtn = document.getElementById("generateGrid");
-const cubeGapInput = document.getElementById("cubeGap");
 
 const MAX_WIDTH = 800;
 const MAX_HEIGHT = 600;
@@ -108,29 +107,32 @@ function sampleToGrid(gridWidth) {
 }
 
 function renderCubes() {
+  const gridWidth = parseInt(gridWidthInput.value, 10);
   const cubeSize = parseInt(cubeSizeInput.value, 10);
-  const gap = cubeGapInput ? parseInt(cubeGapInput.value, 10) : 0;
 
-  const maxX = Math.max(...cubeGrid.map(c => c.x)) + 1;
-  const maxY = Math.max(...cubeGrid.map(c => c.y)) + 1;
+  if (!gridWidth || !cubeSize) return;
 
-  const step = cubeSize + gap;
+  const gridHeight = Math.round(
+    gridWidth * (sourceHeight / sourceWidth)
+  );
 
-  canvas.width = maxX * step;
-  canvas.height = maxY * step;
+  canvas.width = gridWidth * cubeSize;
+  canvas.height = gridHeight * cubeSize;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  for (const cube of cubeGrid) {
-    const { r, g, b } = cube.color;
-    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+  cubeGrid.forEach(cube => {
+    const x = cube.x * cubeSize;
+    const y = cube.y * cubeSize;
 
-    ctx.fillRect(
-      cube.x * step,
-      cube.y * step,
-      cubeSize,
-      cubeSize
-    );
-  }
+    ctx.fillStyle = `rgb(${cube.color.r},${cube.color.g},${cube.color.b})`;
+    ctx.fillRect(x, y, cubeSize, cubeSize);
+
+    // cube border
+    ctx.strokeStyle = "rgba(0,0,0,0.35)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, cubeSize, cubeSize);
+  });
 }
+
 
