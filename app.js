@@ -65,6 +65,35 @@ function generateMosaic() {
   render(imageData, gridWidth, gridHeight, subdivision, squareSize);
 }
 
+// 6-color palette
+const PALETTE = [
+  { r: 255, g: 255, b: 255 }, // white
+  { r: 255, g: 0,   b: 0   }, // red
+  { r: 0,   g: 128, b: 0   }, // green
+  { r: 0,   g: 0,   b: 255 }, // blue
+  { r: 255, g: 165, b: 0   }, // orange
+  { r: 255, g: 255, b: 0   }  // yellow
+];
+
+function nearestPaletteColor(r, g, b) {
+  let best = PALETTE[0];
+  let minDist = Infinity;
+
+  for (const c of PALETTE) {
+    const dr = r - c.r;
+    const dg = g - c.g;
+    const db = b - c.b;
+    const dist = dr * dr + dg * dg + db * db;
+
+    if (dist < minDist) {
+      minDist = dist;
+      best = c;
+    }
+  }
+  return best;
+}
+
+
 // Rendering
 function render(imageData, gridWidth, gridHeight, subdivision, squareSize) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -81,10 +110,13 @@ function render(imageData, gridWidth, gridHeight, subdivision, squareSize) {
       const g = data[idx + 1];
       const b = data[idx + 2];
 
+      // 🔹 quantize to 6 colors
+      const qc = nearestPaletteColor(r, g, b);
+
       const x = px * squareSize;
       const y = py * squareSize;
 
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillStyle = `rgb(${qc.r},${qc.g},${qc.b})`;
       ctx.fillRect(x, y, squareSize, squareSize);
 
       // small square border
