@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cube Mosaic – Step 1</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Cube Mosaic – Image Loader</h1>
+
+    <input type="file" id="imageInput" accept="image/*" />
+
+    <div class="canvas-wrapper">
+      <label>
+        Cubes per width:
+        <input type="number" id="gridWidth" value="30" min="5" max="300" />
+      </label>
+
+      <label>
+        Cube size (px):
+        <input type="number" id="cubeSize" value="10" min="2" max="50" />
+      </label>
+
+      <label>
+        Cube gap (px):
+        <input type="number" id="cubeGap" value="1" min="0" max="10" />
+      </label>
+
+      <button id="generateGrid">Generate Grid</button>
+
+      <canvas id="canvas"></canvas>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
