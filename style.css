@@ -1,16 +1,17 @@
 body {
   font-family: system-ui, sans-serif;
-  padding: 20px;
+  padding: 16px;
 }
 
-.canvas-wrapper {
-  margin-top: 20px;
-  border: 1px solid #ccc;
-  display: inline-block;
+.controls {
+  margin: 12px 0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 canvas {
-  display: block;
-  background: #f5f5f5;
+  border: 1px solid #aaa;
+  margin-top: 12px;
 }
 

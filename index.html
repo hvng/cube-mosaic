@@ -1,31 +1,40 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Cube Mosaic – Step 1</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <h1>Cube Mosaic – Image Loader</h1>
+<head>
+  <meta charset="UTF-8" />
+  <title>Cube Mosaic</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Cube Mosaic</h1>
 
-    <input type="file" id="imageInput" accept="image/*" />
+  <input type="file" id="imageInput" accept="image/*" />
 
-    <div class="canvas-wrapper">
-      <label>
-        Cubes per width:
-        <input type="number" id="gridWidth" value="30" min="5" max="300" />
-      </label>
+  <div class="controls">
+    <label>
+      Grid width (cubes):
+      <input type="number" id="gridWidth" value="10" min="1" max="200">
+    </label>
 
-      <label>
-        Cube size (px):
-        <input type="number" id="cubeSize" value="10" min="2" max="50" />
-      </label>
+    <label>
+      Cube type:
+      <select id="cubeSubdivision">
+        <option value="3" selected>3 × 3</option>
+        <option value="4">4 × 4</option>
+      </select>
+    </label>
 
-      <button id="generateGrid">Generate Grid</button>
+    <label>
+      Pixel size (px):
+      <input type="number" id="squareSize" value="8" min="2" max="20">
+    </label>
 
-      <canvas id="canvas"></canvas>
-    </div>
+    <button id="generateGrid">Generate</button>
+  </div>
 
-    <script src="app.js"></script>
-  </body>
+  <canvas id="canvas"></canvas>
+
+  <script src="app.js"></script>
+</body>
 </html>
+

@@ -1,19 +1,15 @@
 const imageInput = document.getElementById("imageInput");
+const gridWidthInput = document.getElementById("gridWidth");
+const cubeSubdivisionInput = document.getElementById("cubeSubdivision");
+const squareSizeInput = document.getElementById("squareSize");
+const generateBtn = document.getElementById("generateGrid");
+
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-const gridWidthInput = document.getElementById("gridWidth");
-const cubeSizeInput = document.getElementById("cubeSize");
-const generateBtn = document.getElementById("generateGrid");
+let loadedImage = null;
 
-const MAX_WIDTH = 800;
-const MAX_HEIGHT = 600;
-
-let sourceImageData = null;
-let sourceWidth = 0;
-let sourceHeight = 0;
-let cubeGrid = [];
-
+// Image loading
 imageInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -21,118 +17,96 @@ imageInput.addEventListener("change", (e) => {
   const reader = new FileReader();
   reader.onload = () => {
     const img = new Image();
-    img.onload = () => drawImageScaled(img);
+    img.onload = () => {
+      loadedImage = img;
+    };
     img.src = reader.result;
   };
   reader.readAsDataURL(file);
 });
 
+// Generate
 generateBtn.addEventListener("click", () => {
-  if (!sourceImageData) {
+  if (!loadedImage) {
     alert("Upload an image first");
     return;
   }
-
-  const gridWidth = parseInt(gridWidthInput.value, 10);
-  cubeGrid = sampleToGrid(gridWidth);
-
-  renderCubes();
+  generateMosaic();
 });
 
-function drawImageScaled(img) {
-  const scale = Math.min(
-    MAX_WIDTH / img.width,
-    MAX_HEIGHT / img.height,
-    1
+// Core logic
+function generateMosaic() {
+  const gridWidth = parseInt(gridWidthInput.value, 10);
+  const subdivision = parseInt(cubeSubdivisionInput.value, 10);
+  const squareSize = parseInt(squareSizeInput.value, 10);
+
+  // derive grid height from aspect ratio
+  const gridHeight = Math.round(
+    gridWidth * (loadedImage.height / loadedImage.width)
   );
 
-  sourceWidth = Math.floor(img.width * scale);
-  sourceHeight = Math.floor(img.height * scale);
+  // pixel resolution
+  const pixelWidth = gridWidth * subdivision;
+  const pixelHeight = gridHeight * subdivision;
 
-  canvas.width = sourceWidth;
-  canvas.height = sourceHeight;
+  // offscreen sampling canvas
+  const sampleCanvas = document.createElement("canvas");
+  sampleCanvas.width = pixelWidth;
+  sampleCanvas.height = pixelHeight;
+  const sctx = sampleCanvas.getContext("2d");
 
-  ctx.clearRect(0, 0, sourceWidth, sourceHeight);
-  ctx.drawImage(img, 0, 0, sourceWidth, sourceHeight);
+  sctx.drawImage(loadedImage, 0, 0, pixelWidth, pixelHeight);
+  const imageData = sctx.getImageData(0, 0, pixelWidth, pixelHeight);
 
-  sourceImageData = ctx.getImageData(0, 0, sourceWidth, sourceHeight);
+  // visible canvas size
+  canvas.width = pixelWidth * squareSize;
+  canvas.height = pixelHeight * squareSize;
+
+  render(imageData, gridWidth, gridHeight, subdivision, squareSize);
 }
 
-function sampleToGrid(gridWidth) {
-  const gridHeight = Math.round(
-    gridWidth * (sourceHeight / sourceWidth)
-  );
+// Rendering
+function render(imageData, gridWidth, gridHeight, subdivision, squareSize) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const cellWidth = sourceWidth / gridWidth;
-  const cellHeight = sourceHeight / gridHeight;
+  const data = imageData.data;
+  const cubeSize = subdivision * squareSize;
 
-  const data = sourceImageData.data;
-  const cubes = [];
+  // draw pixels
+  for (let py = 0; py < imageData.height; py++) {
+    for (let px = 0; px < imageData.width; px++) {
 
-  for (let gy = 0; gy < gridHeight; gy++) {
-    for (let gx = 0; gx < gridWidth; gx++) {
+      const idx = (py * imageData.width + px) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
 
-      const xStart = Math.floor(gx * cellWidth);
-      const yStart = Math.floor(gy * cellHeight);
-      const xEnd = Math.floor((gx + 1) * cellWidth);
-      const yEnd = Math.floor((gy + 1) * cellHeight);
+      const x = px * squareSize;
+      const y = py * squareSize;
 
-      let r = 0, g = 0, b = 0, count = 0;
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(x, y, squareSize, squareSize);
 
-      for (let y = yStart; y < yEnd; y++) {
-        for (let x = xStart; x < xEnd; x++) {
-          const idx = (y * sourceWidth + x) * 4;
-          r += data[idx];
-          g += data[idx + 1];
-          b += data[idx + 2];
-          count++;
-        }
-      }
-
-      if (count === 0) continue;
-
-      cubes.push({
-        x: gx,
-        y: gy,
-        color: {
-          r: Math.round(r / count),
-          g: Math.round(g / count),
-          b: Math.round(b / count)
-        }
-      });
+      // small square border
+      ctx.strokeStyle = "rgba(0,0,0,0.25)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, y, squareSize, squareSize);
     }
   }
 
-  return cubes;
+  // cube borders
+  ctx.strokeStyle = "rgba(0,0,0,0.9)";
+  ctx.lineWidth = 3;
+
+  for (let cy = 0; cy < gridHeight; cy++) {
+    for (let cx = 0; cx < gridWidth; cx++) {
+      ctx.strokeRect(
+        cx * cubeSize,
+        cy * cubeSize,
+        cubeSize,
+        cubeSize
+      );
+    }
+  }
 }
-
-function renderCubes() {
-  const gridWidth = parseInt(gridWidthInput.value, 10);
-  const cubeSize = parseInt(cubeSizeInput.value, 10);
-
-  if (!gridWidth || !cubeSize) return;
-
-  const gridHeight = Math.round(
-    gridWidth * (sourceHeight / sourceWidth)
-  );
-
-  canvas.width = gridWidth * cubeSize;
-  canvas.height = gridHeight * cubeSize;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  cubeGrid.forEach(cube => {
-    const x = cube.x * cubeSize;
-    const y = cube.y * cubeSize;
-
-    ctx.fillStyle = `rgb(${cube.color.r},${cube.color.g},${cube.color.b})`;
-    ctx.fillRect(x, y, cubeSize, cubeSize);
-
-    // cube border
-    ctx.strokeStyle = "rgba(0,0,0,0.35)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, cubeSize, cubeSize);
-  });
-}
-
 
